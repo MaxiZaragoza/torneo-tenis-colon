@@ -359,3 +359,23 @@ body {
 .btn-danger:hover {
   background: #dc2626;
 }
+
+/* Insignias/Colores de Categoría */
+.badge-categoria {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-block;
+  color: #ffffff;
+}
+
+/* 3era Categoría: Azul Índigo */
+.cat-3era {
+  background-color: #312e81;
+}
+
+/* 4ta Categoría: Naranja / Ámbar */
+.cat-4ta {
+  background-color: #d97706;
+}
