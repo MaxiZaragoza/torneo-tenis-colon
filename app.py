@@ -1,77 +1,86 @@
+import os
 import sqlite3
+import psycopg2
+import psycopg2.extras
 from flask import Flask, render_template, request, redirect, url_for, g, session
 
 app = Flask(__name__)
 app.secret_key = "clave_secreta_admin"
-DATABASE = "torneo_tenis.db"
-ADMIN_PASSWORD = "Maxi2026"
+ADMIN_PASSWORD = "admin"
+
+DB_URL = os.environ.get("DATABASE_URL")
 
 
 def get_db():
-    db = getattr(g, "_database", None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
-        db.execute("PRAGMA foreign_keys = ON;")
-    return db
+    if "db" not in g:
+        if DB_URL:
+            # Conexión a PostgreSQL en Render
+            url = DB_URL.replace("postgres://", "postgresql://", 1) if DB_URL.startswith("postgres://") else DB_URL
+            g.db = psycopg2.connect(url)
+            g.db_type = "postgres"
+        else:
+            # Conexión local con SQLite
+            g.db = sqlite3.connect("torneo_tenis.db")
+            g.db.row_factory = sqlite3.Row
+            g.db_type = "sqlite"
+    return g.db
 
 
 @app.teardown_appcontext
 def close_connection(exception):
-    db = getattr(g, "_database", None)
+    db = g.pop("db", None)
     if db is not None:
         db.close()
+
+
+def get_cursor(db):
+    if getattr(g, "db_type", "sqlite") == "postgres":
+        return db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    return db.cursor()
 
 
 def init_db():
     with app.app_context():
         db = get_db()
-        cursor = db.cursor()
+        cursor = get_cursor(db)
+        is_pg = getattr(g, "db_type", "sqlite") == "postgres"
 
-        cursor.execute("""
+        pk_type = "SERIAL PRIMARY KEY" if is_pg else "INTEGER PRIMARY KEY AUTOINCREMENT"
+
+        cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS zonas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {pk_type},
                 nombre TEXT NOT NULL,
                 categoria TEXT NOT NULL DEFAULT '3era'
             )
         """)
 
-        cursor.execute("PRAGMA table_info(zonas)")
-        cols = [col[1] for col in cursor.fetchall()]
-        if "categoria" not in cols:
-            cursor.execute("ALTER TABLE zonas ADD COLUMN categoria TEXT NOT NULL DEFAULT '3era'")
-
-        cursor.execute("""
+        cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS jugadores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {pk_type},
                 nombre TEXT NOT NULL,
-                zona_id INTEGER NOT NULL,
-                FOREIGN KEY (zona_id) REFERENCES zonas (id) ON DELETE CASCADE
+                zona_id INTEGER NOT NULL REFERENCES zonas(id) ON DELETE CASCADE
             )
         """)
 
-        cursor.execute("""
+        cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS partidos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                zona_id INTEGER NOT NULL,
-                jugador1_id INTEGER NOT NULL,
-                jugador2_id INTEGER NOT NULL,
+                id {pk_type},
+                zona_id INTEGER NOT NULL REFERENCES zonas(id) ON DELETE CASCADE,
+                jugador1_id INTEGER NOT NULL REFERENCES jugadores(id) ON DELETE CASCADE,
+                jugador2_id INTEGER NOT NULL REFERENCES jugadores(id) ON DELETE CASCADE,
                 resultado_texto TEXT NOT NULL,
                 sets_ganados1 INTEGER NOT NULL,
                 sets_ganados2 INTEGER NOT NULL,
                 games_totales1 INTEGER NOT NULL,
                 games_totales2 INTEGER NOT NULL,
-                FOREIGN KEY (zona_id) REFERENCES zonas (id) ON DELETE CASCADE,
-                FOREIGN KEY (jugador1_id) REFERENCES jugadores (id) ON DELETE CASCADE,
-                FOREIGN KEY (jugador2_id) REFERENCES jugadores (id) ON DELETE CASCADE,
                 UNIQUE(zona_id, jugador1_id, jugador2_id)
             )
         """)
 
-        # Nueva Tabla para los Cuadros de Eliminación Directa
-        cursor.execute("""
+        cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS cuadros (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {pk_type},
                 categoria TEXT NOT NULL,
                 instancia TEXT NOT NULL,
                 partido_num INTEGER NOT NULL,
@@ -82,19 +91,20 @@ def init_db():
             )
         """)
 
-        # Inicializar los casilleros del cuadro si no existen
-        instancias_config = [
-            ("cuartos", 4),
-            ("semi", 2),
-            ("final", 1)
-        ]
+        instancias_config = [("cuartos", 4), ("semi", 2), ("final", 1)]
         for cat in ["3era", "4ta"]:
             for inst, cant in instancias_config:
                 for num in range(1, cant + 1):
-                    cursor.execute("""
-                        INSERT OR IGNORE INTO cuadros (categoria, instancia, partido_num)
-                        VALUES (?, ?, ?)
-                    """, (cat, inst, num))
+                    if is_pg:
+                        cursor.execute("""
+                            INSERT INTO cuadros (categoria, instancia, partido_num)
+                            VALUES (%s, %s, %s) ON CONFLICT DO NOTHING
+                        """, (cat, inst, num))
+                    else:
+                        cursor.execute("""
+                            INSERT OR IGNORE INTO cuadros (categoria, instancia, partido_num)
+                            VALUES (?, ?, ?)
+                        """, (cat, inst, num))
 
         db.commit()
 
@@ -119,7 +129,9 @@ def parse_sets_para_vista(res_txt):
 
 def obtener_datos_torneo():
     db = get_db()
-    cursor = db.cursor()
+    cursor = get_cursor(db)
+    is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+    ph = "%s" if is_pg else "?"
 
     cursor.execute("SELECT * FROM zonas ORDER BY categoria, nombre")
     zonas_raw = cursor.fetchall()
@@ -129,10 +141,10 @@ def obtener_datos_torneo():
     for z in zonas_raw:
         zona_id, zona_nombre, cat = z["id"], z["nombre"], z["categoria"]
 
-        cursor.execute("SELECT * FROM jugadores WHERE zona_id = ? ORDER BY id", (zona_id,))
+        cursor.execute(f"SELECT * FROM jugadores WHERE zona_id = {ph} ORDER BY id", (zona_id,))
         jugadores = [dict(j) for j in cursor.fetchall()]
 
-        cursor.execute("SELECT * FROM partidos WHERE zona_id = ?", (zona_id,))
+        cursor.execute(f"SELECT * FROM partidos WHERE zona_id = {ph}", (zona_id,))
         partidos_raw = cursor.fetchall()
 
         matriz_resultados = {}
@@ -192,7 +204,6 @@ def obtener_datos_torneo():
         else:
             categorias_data["3era"].append(zona_obj)
 
-    # Obtener los datos del cuadro de eliminación
     cursor.execute("SELECT * FROM cuadros ORDER BY categoria, id")
     cuadros_raw = [dict(c) for c in cursor.fetchall()]
 
@@ -234,7 +245,10 @@ def crear_zona():
     nombre, categoria = request.form.get("nombre_zona"), request.form.get("categoria_zona")
     if nombre and categoria:
         db = get_db()
-        db.cursor().execute("INSERT INTO zonas (nombre, categoria) VALUES (?, ?)", (nombre.strip(), categoria))
+        cursor = get_cursor(db)
+        is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+        ph = "%s" if is_pg else "?"
+        cursor.execute(f"INSERT INTO zonas (nombre, categoria) VALUES ({ph}, {ph})", (nombre.strip(), categoria))
         db.commit()
     return redirect(url_for("admin"))
 
@@ -245,7 +259,10 @@ def crear_jugador():
     nombre, zona_id = request.form.get("nombre_jugador"), request.form.get("zona_id")
     if nombre and zona_id:
         db = get_db()
-        db.cursor().execute("INSERT INTO jugadores (nombre, zona_id) VALUES (?, ?)", (nombre.strip(), int(zona_id)))
+        cursor = get_cursor(db)
+        is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+        ph = "%s" if is_pg else "?"
+        cursor.execute(f"INSERT INTO jugadores (nombre, zona_id) VALUES ({ph}, {ph})", (nombre.strip(), int(zona_id)))
         db.commit()
     return redirect(url_for("admin"))
 
@@ -283,18 +300,29 @@ def cargar_partido():
             sg1, sg2, gt1, gt2 = sets_g2, sets_g1, games_t2, games_t1
 
         db = get_db()
-        db.cursor().execute("""
-            INSERT INTO partidos (zona_id, jugador1_id, jugador2_id, resultado_texto, sets_ganados1, sets_ganados2, games_totales1, games_totales2)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(zona_id, jugador1_id, jugador2_id) DO UPDATE SET
-                resultado_texto=excluded.resultado_texto, sets_ganados1=excluded.sets_ganados1,
-                sets_ganados2=excluded.sets_ganados2, games_totales1=excluded.games_totales1, games_totales2=excluded.games_totales2
-        """, (zona_id, p1, p2, res_final, sg1, sg2, gt1, gt2))
+        cursor = get_cursor(db)
+        is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+
+        if is_pg:
+            cursor.execute("""
+                INSERT INTO partidos (zona_id, jugador1_id, jugador2_id, resultado_texto, sets_ganados1, sets_ganados2, games_totales1, games_totales2)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT(zona_id, jugador1_id, jugador2_id) DO UPDATE SET
+                    resultado_texto=EXCLUDED.resultado_texto, sets_ganados1=EXCLUDED.sets_ganados1,
+                    sets_ganados2=EXCLUDED.sets_ganados2, games_totales1=EXCLUDED.games_totales1, games_totales2=EXCLUDED.games_totales2
+            """, (zona_id, p1, p2, res_final, sg1, sg2, gt1, gt2))
+        else:
+            cursor.execute("""
+                INSERT INTO partidos (zona_id, jugador1_id, jugador2_id, resultado_texto, sets_ganados1, sets_ganados2, games_totales1, games_totales2)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(zona_id, jugador1_id, jugador2_id) DO UPDATE SET
+                    resultado_texto=excluded.resultado_texto, sets_ganados1=excluded.sets_ganados1,
+                    sets_ganados2=excluded.sets_ganados2, games_totales1=excluded.games_totales1, games_totales2=excluded.games_totales2
+            """, (zona_id, p1, p2, res_final, sg1, sg2, gt1, gt2))
         db.commit()
     return redirect(url_for("admin"))
 
 
-# Endpoint para actualizar partidos del cuadro eliminatorio
 @app.route("/actualizar_cuadro", methods=["POST"])
 def actualizar_cuadro():
     if not session.get("admin_logged_in"): return redirect(url_for("index"))
@@ -305,10 +333,13 @@ def actualizar_cuadro():
 
     if cuadro_id:
         db = get_db()
-        db.cursor().execute("""
+        cursor = get_cursor(db)
+        is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+        ph = "%s" if is_pg else "?"
+        cursor.execute(f"""
             UPDATE cuadros 
-            SET jugador1_nombre = ?, jugador2_nombre = ?, resultado = ?
-            WHERE id = ?
+            SET jugador1_nombre = {ph}, jugador2_nombre = {ph}, resultado = {ph}
+            WHERE id = {ph}
         """, (j1_nombre, j2_nombre, resultado, cuadro_id))
         db.commit()
 
@@ -319,8 +350,11 @@ def actualizar_cuadro():
 def eliminar_jugador(jugador_id):
     if not session.get("admin_logged_in"): return redirect(url_for("index"))
     db = get_db()
-    db.cursor().execute("DELETE FROM jugadores WHERE id = ?", (jugador_id,))
-    db.cursor().execute("DELETE FROM partidos WHERE jugador1_id = ? OR jugador2_id = ?", (jugador_id, jugador_id))
+    cursor = get_cursor(db)
+    is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+    ph = "%s" if is_pg else "?"
+    cursor.execute(f"DELETE FROM jugadores WHERE id = {ph}", (jugador_id,))
+    cursor.execute(f"DELETE FROM partidos WHERE jugador1_id = {ph} OR jugador2_id = {ph}", (jugador_id, jugador_id))
     db.commit()
     return redirect(url_for("admin"))
 
@@ -329,7 +363,10 @@ def eliminar_jugador(jugador_id):
 def eliminar_zona(zona_id):
     if not session.get("admin_logged_in"): return redirect(url_for("index"))
     db = get_db()
-    db.cursor().execute("DELETE FROM zonas WHERE id = ?", (zona_id,))
+    cursor = get_cursor(db)
+    is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+    ph = "%s" if is_pg else "?"
+    cursor.execute(f"DELETE FROM zonas WHERE id = {ph}", (zona_id,))
     db.commit()
     return redirect(url_for("admin"))
 
