@@ -1,8 +1,12 @@
 import os
 import sqlite3
-import psycopg2
-import psycopg2.extras
 from flask import Flask, render_template, request, redirect, url_for, g, session
+
+try:
+    import psycopg2
+    import psycopg2.extras
+except ImportError:
+    psycopg2 = None
 
 app = Flask(__name__)
 app.secret_key = "clave_secreta_admin"
@@ -14,12 +18,10 @@ DB_URL = os.environ.get("DATABASE_URL")
 def get_db():
     if "db" not in g:
         if DB_URL:
-            # Conexión a PostgreSQL en Render
             url = DB_URL.replace("postgres://", "postgresql://", 1) if DB_URL.startswith("postgres://") else DB_URL
             g.db = psycopg2.connect(url)
             g.db_type = "postgres"
         else:
-            # Conexión local con SQLite
             g.db = sqlite3.connect("torneo_tenis.db")
             g.db.row_factory = sqlite3.Row
             g.db_type = "sqlite"
@@ -88,6 +90,20 @@ def init_db():
                 jugador2_nombre TEXT DEFAULT '',
                 resultado TEXT DEFAULT '',
                 UNIQUE(categoria, instancia, partido_num)
+            )
+        """)
+
+        # NUEVA TABLA: Horarios de partidos
+        cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS horarios (
+                id {pk_type},
+                dia TEXT NOT NULL,
+                hora TEXT NOT NULL,
+                cancha TEXT DEFAULT '',
+                categoria TEXT NOT NULL,
+                jugador1 TEXT NOT NULL,
+                jugador2 TEXT NOT NULL,
+                estado TEXT DEFAULT 'Programado'
             )
         """)
 
@@ -160,8 +176,7 @@ def obtener_datos_torneo():
             }
 
             set_tokens = [s.strip() for s in res_txt.split(",") if s.strip()]
-            inverted_tokens = [f"{t.split('-')[1].strip()}-{t.split('-')[0].strip()}" if "-" in t else t for t in
-                               set_tokens]
+            inverted_tokens = [f"{t.split('-')[1].strip()}-{t.split('-')[0].strip()}" if "-" in t else t for t in set_tokens]
             res_txt_inv = ", ".join(inverted_tokens)
 
             matriz_resultados[j2][j1] = {
@@ -189,8 +204,7 @@ def obtener_datos_torneo():
             tot_games = stats[j_id]["gf"] + stats[j_id]["gc"]
             if tot_games > 0: stats[j_id]["pct_games"] = round((stats[j_id]["gf"] / tot_games) * 100, 1)
 
-        lista_ordenada = sorted(list(stats.values()), key=lambda x: (x["pg"], x["pct_sets"], x["pct_games"]),
-                                reverse=True)
+        lista_ordenada = sorted(list(stats.values()), key=lambda x: (x["pg"], x["pct_sets"], x["pct_games"]), reverse=True)
         posiciones_map = {st["id"]: rank for rank, st in enumerate(lista_ordenada, start=1)}
 
         zona_obj = {
@@ -209,15 +223,19 @@ def obtener_datos_torneo():
 
     cuadros_data = {"3era": {"cuartos": [], "semi": [], "final": []}, "4ta": {"cuartos": [], "semi": [], "final": []}}
     for c in cuadros_raw:
-        cuadros_data[c["categoria"]][c["instancia"]].append(c)
+        if c["categoria"] in cuadros_data and c["instancia"] in cuadros_data[c["categoria"]]:
+            cuadros_data[c["categoria"]][c["instancia"]].append(c)
 
-    return categorias_data, cuadros_data
+    cursor.execute("SELECT * FROM horarios ORDER BY dia, hora")
+    horarios_data = [dict(h) for h in cursor.fetchall()]
+
+    return categorias_data, cuadros_data, horarios_data
 
 
 @app.route("/")
 def index():
-    categorias, cuadros = obtener_datos_torneo()
-    return render_template("index.html", categorias=categorias, cuadros=cuadros, es_admin=False)
+    categorias, cuadros, horarios = obtener_datos_torneo()
+    return render_template("index.html", categorias=categorias, cuadros=cuadros, horarios=horarios, es_admin=False)
 
 
 @app.route("/admin", methods=["GET", "POST"])
@@ -229,8 +247,8 @@ def admin():
             return redirect(url_for("admin"))
 
     es_admin = session.get("admin_logged_in", False)
-    categorias, cuadros = obtener_datos_torneo()
-    return render_template("index.html", categorias=categorias, cuadros=cuadros, es_admin=es_admin)
+    categorias, cuadros, horarios = obtener_datos_torneo()
+    return render_template("index.html", categorias=categorias, cuadros=cuadros, horarios=horarios, es_admin=es_admin)
 
 
 @app.route("/logout")
@@ -285,10 +303,8 @@ def cargar_partido():
                 texto_sets.append(f"{g1}-{g2}")
                 games_t1 += g1
                 games_t2 += g2
-                if g1 > g2:
-                    sets_g1 += 1
-                elif g2 > g1:
-                    sets_g2 += 1
+                if g1 > g2: sets_g1 += 1
+                elif g2 > g1: sets_g2 += 1
 
         resultado_texto = ", ".join(texto_sets)
         p1, p2 = (j1_id, j2_id) if j1_id < j2_id else (j2_id, j1_id)
@@ -343,6 +359,41 @@ def actualizar_cuadro():
         """, (j1_nombre, j2_nombre, resultado, cuadro_id))
         db.commit()
 
+    return redirect(url_for("admin"))
+
+
+@app.route("/crear_horario", methods=["POST"])
+def crear_horario():
+    if not session.get("admin_logged_in"): return redirect(url_for("index"))
+    dia = request.form.get("dia")
+    hora = request.form.get("hora")
+    cancha = request.form.get("cancha", "")
+    categoria = request.form.get("categoria")
+    jugador1 = request.form.get("jugador1")
+    jugador2 = request.form.get("jugador2")
+
+    if dia and hora and categoria and jugador1 and jugador2:
+        db = get_db()
+        cursor = get_cursor(db)
+        is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+        ph = "%s" if is_pg else "?"
+        cursor.execute(f"""
+            INSERT INTO horarios (dia, hora, cancha, categoria, jugador1, jugador2)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+        """, (dia, hora, cancha, categoria, jugador1, jugador2))
+        db.commit()
+    return redirect(url_for("admin"))
+
+
+@app.route("/eliminar_horario/<int:horario_id>", methods=["POST"])
+def eliminar_horario(horario_id):
+    if not session.get("admin_logged_in"): return redirect(url_for("index"))
+    db = get_db()
+    cursor = get_cursor(db)
+    is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+    ph = "%s" if is_pg else "?"
+    cursor.execute(f"DELETE FROM horarios WHERE id = {ph}", (horario_id,))
+    db.commit()
     return redirect(url_for("admin"))
 
 

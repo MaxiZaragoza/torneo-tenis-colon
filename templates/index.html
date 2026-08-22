@@ -1,484 +1,372 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torneo de Tenis de Colón - Las Cabañas tenis ranch</title>
-    <!-- Bootstrap 5 & Google Fonts -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-
-    <style>
-        :root {
-            --tennis-dark: #0f3822;
-            --tennis-green: #1e5631;
-            --bg-main: #f3f5f8;
-            --card-radius: 16px;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-main);
-            color: #2d3748;
-        }
-
-        .navbar-custom {
-            background: linear-gradient(135deg, var(--tennis-dark) 0%, var(--tennis-green) 100%);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 0.75rem 0;
-        }
-
-        /* Título Responsivo */
-        .brand-text {
-            font-size: 1.1rem;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-        @media (min-width: 768px) {
-            .brand-text { font-size: 1.5rem; }
-        }
-
-        .card-custom {
-            border: none;
-            border-radius: var(--card-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-            background: #ffffff;
-        }
-
-        .btn-tennis {
-            background-color: var(--tennis-green);
-            color: white;
-            border-radius: 10px;
-            font-weight: 600;
-            padding: 0.6rem 1.2rem;
-            border: none;
-            transition: all 0.2s ease;
-        }
-
-        .btn-tennis:hover {
-            background-color: var(--tennis-dark);
-            color: white;
-            box-shadow: 0 4px 12px rgba(30, 86, 49, 0.25);
-        }
-
-        /* Pestañas Adaptables */
-        .nav-pills-custom {
-            background: #e2e8f0;
-            padding: 6px;
-            border-radius: 14px;
-            display: flex;
-            gap: 4px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .nav-pills-custom .nav-link {
-            border-radius: 10px;
-            color: #64748b;
-            font-weight: 700;
-            padding: 8px 12px;
-            white-space: nowrap;
-            flex: 1 0 auto;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .nav-pills-custom .nav-link.active {
-            background-color: #ffffff;
-            color: var(--tennis-dark);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        /* Tablas */
-        .table-tennis th, .table-tennis td {
-            white-space: nowrap;
-        }
-
-        .table-tennis th {
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            color: #64748b;
-            background-color: #f8fafc;
-            border-bottom: 2px solid #edf2f7;
-            padding: 0.75rem 0.5rem;
-        }
-
-        .diagonal-cell { background-color: #1e293b !important; }
-
-        .set-badge {
-            display: inline-block;
-            padding: 2px 5px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .set-win { background-color: #dcfce7; color: #15803d; }
-        .set-loss { background-color: #fee2e2; color: #b91c1c; }
-
-        .rank-badge {
-            width: 24px; height: 24px; border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.75rem;
-        }
-
-        .clasifica-1 { background-color: #f0fdf4 !important; }
-        .clasifica-1 .rank-badge { background-color: #22c55e; color: white; }
-        .clasifica-2 { background-color: #f8fafc !important; }
-        .clasifica-2 .rank-badge { background-color: #94a3b8; color: white; }
-
-        /* Brackets Eliminatorios */
-        .bracket-container {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding: 10px 0;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .bracket-column {
-            flex: 0 0 250px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-        }
-
-        .match-card {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            padding: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-        }
-
-        .match-player {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .match-result {
-            background: #f1f5f9;
-            border-radius: 6px;
-            padding: 2px 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--tennis-green);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torneo de Tenis de Colón</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-<nav class="navbar navbar-custom text-white mb-3">
-    <div class="container d-flex justify-content-between align-items-center gap-2">
-        <div class="d-flex align-items-center gap-2 brand-text fw-bold text-warning">
-            <i class="bi bi-trophy-fill text-warning flex-shrink-0"></i>
-            <span>Torneo de Tenis de Colón <span class="d-none d-sm-inline">- Las Cabañas Tenis Ranch</span></span>
+  <!-- Encabezado / Navbar -->
+  <header class="navbar">
+    <div class="container navbar-content">
+      <div class="brand">
+        <i class="fa-solid fa-trophy brand-icon"></i>
+        <div class="brand-text">
+          <h1>Torneo de Tenis de Colón</h1>
+          <span>Las Cabañas Tenis Ranch</span>
         </div>
+      </div>
+      <div style="margin-left: auto;">
         {% if es_admin %}
-            <a href="/logout" class="btn btn-outline-light btn-sm rounded-pill px-3 flex-shrink-0"><i class="bi bi-box-arrow-right me-1"></i> Salir</a>
+          <a href="{{ url_for('logout') }}" class="btn btn-danger">Cerrar Sesión Admin</a>
         {% else %}
-            <button class="btn btn-light btn-sm fw-semibold rounded-pill px-3 text-success shadow-sm flex-shrink-0" data-bs-toggle="modal" data-bs-target="#loginModal">
-                <i class="bi bi-lock-fill me-1"></i> Admin
-            </button>
+          <a href="{{ url_for('admin') }}" class="btn" style="background: rgba(255,255,255,0.2); text-decoration: none;">Acceso Admin</a>
         {% endif %}
+      </div>
     </div>
-</nav>
+  </header>
 
-<div class="container mb-5 px-2 px-sm-3">
+  <main class="container main-content">
 
-    {% if es_admin %}
-    <div class="d-flex align-items-center justify-content-between bg-white p-3 rounded-4 shadow-sm mb-4 border-start border-4 border-success">
-        <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-shield-check text-success fs-4"></i>
-            <span class="fw-bold text-dark fs-7 fs-sm-6">Modo Edición Habilitado</span>
-        </div>
-        <span class="badge bg-success-subtle text-success fw-semibold">Admin</span>
-    </div>
+    <!-- Si se ingresó a /admin sin estar autenticado -->
+    {% if request.path == '/admin' and not es_admin %}
+      <div class="login-box">
+        <h3>Iniciar Sesión Administrador</h3>
+        <form action="{{ url_for('admin') }}" method="POST" style="margin-top: 1rem;">
+          <div class="form-group">
+            <input type="password" name="password" placeholder="Contraseña de Admin" class="form-control" required>
+          </div>
+          <button type="submit" class="btn" style="width: 100%;">Ingresar</button>
+        </form>
+      </div>
+    {% else %}
 
-    <!-- Panel Carga de Datos -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-4 col-md-6">
-            <div class="card card-custom h-100"><div class="card-body">
-                <h6 class="fw-bold text-uppercase text-muted fs-7 mb-2"><i class="bi bi-grid-plus me-1"></i> 1. Nueva Zona</h6>
-                <form action="/crear_zona" method="POST">
-                    <input type="text" name="nombre_zona" class="form-control mb-2" placeholder="Nombre (Ej: Zona A)" required>
-                    <select name="categoria_zona" class="form-select mb-2" required>
-                        <option value="3era">Categoría 3era</option>
-                        <option value="4ta">Categoría 4ta</option>
-                    </select>
-                    <button type="submit" class="btn btn-tennis w-100">Crear Zona</button>
-                </form>
-            </div></div>
-        </div>
+      <!-- Pestañas Principales -->
+      <nav class="tabs-wrapper">
+        <ul class="tabs-list" role="tablist">
+          <!-- Zonas por categoría -->
+          {% for cat_nombre in categorias.keys() %}
+            <li class="tab-item">
+              <button class="tab-button {% if loop.first %}active{% endif %}" data-tab="cat-{{ cat_nombre }}">
+                Zonas {{ cat_nombre }}
+              </button>
+            </li>
+          {% endfor %}
 
-        <div class="col-lg-4 col-md-6">
-            <div class="card card-custom h-100"><div class="card-body">
-                <h6 class="fw-bold text-uppercase text-muted fs-7 mb-2"><i class="bi bi-person-plus me-1"></i> 2. Nuevo Jugador</h6>
-                <form action="/crear_jugador" method="POST">
-                    <input type="text" name="nombre_jugador" class="form-control mb-2" placeholder="Nombre y Apellido" required>
-                    <select name="zona_id" class="form-select mb-2" required>
-                        {% for cat, zonas in categorias.items() %}
-                            {% for z in zonas %}<option value="{{ z.id }}">{{ cat }} - {{ z.nombre }}</option>{% endfor %}
+          <!-- Pestañas de Cuadros/Playoffs -->
+          {% for cat_nombre in cuadros.keys() %}
+            <li class="tab-item">
+              <button class="tab-button" data-tab="cuadro-{{ cat_nombre }}">
+                Cuadro {{ cat_nombre }}
+              </button>
+            </li>
+          {% endfor %}
+
+          <!-- Pestaña Horarios -->
+          <li class="tab-item">
+            <button class="tab-button" data-tab="tab-horarios">
+              <i class="fa-regular fa-clock"></i> Horarios
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Contenido de las Pestañas -->
+      <div class="tab-content-wrapper">
+
+        <!-- 1. Pestañas de Zonas -->
+        {% for cat_nombre, zonas in categorias.items() %}
+          <section id="cat-{{ cat_nombre }}" class="tab-panel {% if loop.first %}active{% endif %}">
+            <div class="zones-grid">
+              {% for zona in zonas %}
+                <article class="zone-card">
+                  <header class="zone-header">
+                    <h3><span>{{ zona.categoria }}</span> {{ zona.nombre }}</h3>
+                    {% if es_admin %}
+                      <form action="{{ url_for('eliminar_zona', zona_id=zona.id) }}" method="POST">
+                        <button type="submit" class="btn btn-danger" style="padding: 2px 6px; font-size: 0.75rem;">Borrar Zona</button>
+                      </form>
+                    {% endif %}
+                  </header>
+
+                  <div class="table-responsive">
+                    <table class="tournament-table">
+                      <thead>
+                        <tr>
+                          <th>Jugador</th>
+                          {% for j in zona.jugadores %}
+                            <th>{{ loop.index }}</th>
+                          {% endfor %}
+                          <th>PG</th>
+                          <th>% Sets</th>
+                          <th>% Games</th>
+                          <th>Pos.</th>
+                          {% if es_admin %}<th>Acciones</th>{% endif %}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for j1 in zona.jugadores %}
+                          <tr>
+                            <td class="player-name">ID:{{ j1.id }} - {{ j1.nombre }}</td>
+                            {% for j2 in zona.jugadores %}
+                              {% if j1.id == j2.id %}
+                                <td class="cell-vs">-</td>
+                              {% else %}
+                                <td>
+                                  {% if zona.matriz.get(j1.id) and zona.matriz[j1.id].get(j2.id) %}
+                                    {% for s in zona.matriz[j1.id][j2.id].sets_list %}
+                                      <span style="font-weight: {% if s.ganado %}bold{% else %}normal{% endif %};">{{ s.texto }}</span>{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                  {% else %}
+                                    -
+                                  {% endif %}
+                                </td>
+                              {% endif %}
+                            {% endfor %}
+
+                            <td>{{ zona.stats[j1.id].pg }}</td>
+                            <td>{{ zona.stats[j1.id].pct_sets }}%</td>
+                            <td>{{ zona.stats[j1.id].pct_games }}%</td>
+                            <td>
+                              {% set pos = zona.posiciones[j1.id] %}
+                              <span class="pos-badge pos-{{ pos }}">{{ pos }}</span>
+                            </td>
+
+                            {% if es_admin %}
+                              <td>
+                                <form action="{{ url_for('eliminar_jugador', jugador_id=j1.id) }}" method="POST">
+                                  <button type="submit" class="btn btn-danger" style="padding: 2px 5px; font-size: 0.7rem;">X</button>
+                                </form>
+                              </td>
+                            {% endif %}
+                          </tr>
                         {% endfor %}
-                    </select>
-                    <button type="submit" class="btn btn-tennis w-100">Agregar Jugador</button>
-                </form>
-            </div></div>
-        </div>
+                      </tbody>
+                    </table>
+                  </div>
+                </article>
+              {% else %}
+                <p>No hay zonas configuradas para esta categoría.</p>
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
 
-        <div class="col-lg-4 col-md-12">
-            <div class="card card-custom h-100"><div class="card-body">
-                <h6 class="fw-bold text-uppercase text-muted fs-7 mb-2"><i class="bi bi-controller me-1"></i> 3. Partido de Zona</h6>
-                <form action="/cargar_partido" method="POST">
-                    <select name="zona_id" id="zona_select" class="form-select mb-2" required onchange="filtrarJugadores()">
-                        {% for cat, zonas in categorias.items() %}
-                            {% for z in zonas %}<option value="{{ z.id }}">{{ cat }} - {{ z.nombre }}</option>{% endfor %}
-                        {% endfor %}
-                    </select>
-                    <div class="row g-1 mb-2">
-                        <div class="col-6"><select name="jugador1_id" id="j1_select" class="form-select" required></select></div>
-                        <div class="col-6"><select name="jugador2_id" id="j2_select" class="form-select" required></select></div>
+        <!-- 2. Pestañas de Cuadros (Llaves de Eliminación Directa) -->
+        {% for cat_nombre, instancias in cuadros.items() %}
+          <section id="cuadro-{{ cat_nombre }}" class="tab-panel">
+            <div class="bracket-wrapper">
+
+              <!-- Cuartos -->
+              <div class="bracket-round">
+                <h4>Cuartos de Final</h4>
+                {% for match in instancias.cuartos %}
+                  <div class="bracket-match">
+                    <div class="bracket-player">
+                      <span>{{ match.jugador1_nombre if match.jugador1_nombre else 'Jugador 1' }}</span>
+                      <span class="bracket-score">{{ match.resultado }}</span>
                     </div>
-                    <div class="row g-1 mb-2 text-center">
-                        <div class="col-4"><span class="fs-7 text-muted">Set 1</span><div class="d-flex gap-1"><input type="number" name="set1_j1" class="form-control px-1 text-center"><input type="number" name="set1_j2" class="form-control px-1 text-center"></div></div>
-                        <div class="col-4"><span class="fs-7 text-muted">Set 2</span><div class="d-flex gap-1"><input type="number" name="set2_j1" class="form-control px-1 text-center"><input type="number" name="set2_j2" class="form-control px-1 text-center"></div></div>
-                        <div class="col-4"><span class="fs-7 text-muted">Set 3</span><div class="d-flex gap-1"><input type="number" name="set3_j1" class="form-control px-1 text-center"><input type="number" name="set3_j2" class="form-control px-1 text-center"></div></div>
+                    <div class="bracket-player">
+                      <span>{{ match.jugador2_nombre if match.jugador2_nombre else 'Jugador 2' }}</span>
                     </div>
-                    <button type="submit" class="btn btn-tennis w-100">Guardar Marcador</button>
-                </form>
-            </div></div>
-        </div>
-    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Semifinales -->
+              <div class="bracket-round">
+                <h4>Semifinales</h4>
+                {% for match in instancias.semi %}
+                  <div class="bracket-match">
+                    <div class="bracket-player">
+                      <span>{{ match.jugador1_nombre if match.jugador1_nombre else 'Ganador QF' }}</span>
+                      <span class="bracket-score">{{ match.resultado }}</span>
+                    </div>
+                    <div class="bracket-player">
+                      <span>{{ match.jugador2_nombre if match.jugador2_nombre else 'Ganador QF' }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Final -->
+              <div class="bracket-round">
+                <h4>Final</h4>
+                {% for match in instancias.final %}
+                  <div class="bracket-match">
+                    <div class="bracket-player">
+                      <span>{{ match.jugador1_nombre if match.jugador1_nombre else 'Finalista 1' }}</span>
+                      <span class="bracket-score">{{ match.resultado }}</span>
+                    </div>
+                    <div class="bracket-player">
+                      <span>{{ match.jugador2_nombre if match.jugador2_nombre else 'Finalista 2' }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+            </div>
+          </section>
+        {% endfor %}
+
+        <!-- 3. Pestaña de Horarios -->
+        <section id="tab-horarios" class="tab-panel">
+          <div class="admin-card">
+            <h4>Cronograma de Partidos</h4>
+            <div class="table-responsive">
+              <table class="tournament-table">
+                <thead>
+                  <tr>
+                    <th>Día</th>
+                    <th>Hora</th>
+                    <th>Cancha</th>
+                    <th>Categoría</th>
+                    <th>Encuentro</th>
+                    {% if es_admin %}<th>Acciones</th>{% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for h in horarios %}
+                    <tr>
+                      <td>{{ h.dia }}</td>
+                      <td><strong>{{ h.hora }} hs</strong></td>
+                      <td>{{ h.cancha }}</td>
+                      <td>{{ h.categoria }}</td>
+                      <td><strong>{{ h.jugador1 }}</strong> vs <strong>{{ h.jugador2 }}</strong></td>
+                      {% if es_admin %}
+                        <td>
+                          <form action="{{ url_for('eliminar_horario', horario_id=h.id) }}" method="POST">
+                            <button type="submit" class="btn btn-danger" style="padding: 2px 5px; font-size: 0.7rem;">Borrar</button>
+                          </form>
+                        </td>
+                      {% endif %}
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="6">No hay partidos programados.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- SECCIÓN EXCLUSIVA DE ADMINISTRADOR -->
+      {% if es_admin %}
+        <hr style="margin: 3rem 0; border: 0; border-top: 2px solid var(--border-color);">
+        <section class="admin-panel">
+          <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);"><i class="fa-solid fa-user-gear"></i> Panel de Administración</h2>
+
+          <!-- Formularo 1: Crear Zona -->
+          <div class="admin-card">
+            <h4>1. Crear Nueva Zona</h4>
+            <form action="{{ url_for('crear_zona') }}" method="POST" class="form-group">
+              <input type="text" name="nombre_zona" placeholder="Ej: Zona A" class="form-control" required>
+              <select name="categoria_zona" class="form-control" required>
+                <option value="3era">3era Categoría</option>
+                <option value="4ta">4ta Categoría</option>
+              </select>
+              <button type="submit" class="btn">Crear Zona</button>
+            </form>
+          </div>
+
+          <!-- Formulario 2: Crear Jugador -->
+          <div class="admin-card">
+            <h4>2. Agregar Jugador a Zona</h4>
+            <form action="{{ url_for('crear_jugador') }}" method="POST" class="form-group">
+              <input type="text" name="nombre_jugador" placeholder="Nombre Completo del Jugador" class="form-control" required>
+              <select name="zona_id" class="form-control" required>
+                {% for cat_nombre, zonas in categorias.items() %}
+                  {% for zona in zonas %}
+                    <option value="{{ zona.id }}">{{ zona.categoria }} - {{ zona.nombre }}</option>
+                  {% endfor %}
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn">Agregar Jugador</button>
+            </form>
+          </div>
+
+          <!-- Formulario 3: Cargar Resultado -->
+          <div class="admin-card">
+            <h4>3. Cargar Resultado de Partido (Zonas)</h4>
+            <form action="{{ url_for('cargar_partido') }}" method="POST">
+              <div class="form-group">
+                <select name="zona_id" class="form-control" required>
+                  {% for cat_nombre, zonas in categorias.items() %}
+                    {% for zona in zonas %}
+                      <option value="{{ zona.id }}">{{ zona.categoria }} - {{ zona.nombre }}</option>
+                    {% endfor %}
+                  {% endfor %}
+                </select>
+                <input type="number" name="jugador1_id" placeholder="ID Jugador 1" class="form-control" required>
+                <input type="number" name="jugador2_id" placeholder="ID Jugador 2" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <input type="number" name="set1_j1" placeholder="Set 1 (J1)" class="form-control">
+                <input type="number" name="set1_j2" placeholder="Set 1 (J2)" class="form-control">
+                <input type="number" name="set2_j1" placeholder="Set 2 (J1)" class="form-control">
+                <input type="number" name="set2_j2" placeholder="Set 2 (J2)" class="form-control">
+                <input type="number" name="set3_j1" placeholder="Set 3 (J1)" class="form-control">
+                <input type="number" name="set3_j2" placeholder="Set 3 (J2)" class="form-control">
+              </div>
+              <button type="submit" class="btn">Guardar Resultado</button>
+            </form>
+          </div>
+
+          <!-- Formulario 4: Actualizar Cuadro (Eliminación Directa) -->
+          <div class="admin-card">
+            <h4>4. Actualizar Partido de Cuadro (Playoffs)</h4>
+            <form action="{{ url_for('actualizar_cuadro') }}" method="POST" class="form-group">
+              <select name="cuadro_id" class="form-control" required>
+                {% for cat_nombre, instancias in cuadros.items() %}
+                  {% for inst_nombre, lista_matches in instancias.items() %}
+                    {% for m in lista_matches %}
+                      <option value="{{ m.id }}">{{ m.categoria }} - {{ m.instancia }} (Partido {{ m.partido_num }})</option>
+                    {% endfor %}
+                  {% endfor %}
+                {% endfor %}
+              </select>
+              <input type="text" name="jugador1_nombre" placeholder="Nombre Jugador 1" class="form-control">
+              <input type="text" name="jugador2_nombre" placeholder="Nombre Jugador 2" class="form-control">
+              <input type="text" name="resultado" placeholder="Resultado (Ej: 6-4 6-2)" class="form-control">
+              <button type="submit" class="btn">Actualizar Cuadro</button>
+            </form>
+          </div>
+
+          <!-- Formulario 5: Publicar Horario -->
+          <div class="admin-card">
+            <h4>5. Agregar Partido al Cronograma de Horarios</h4>
+            <form action="{{ url_for('crear_horario') }}" method="POST">
+              <div class="form-group">
+                <input type="text" name="dia" placeholder="Ej: Sábado 12" class="form-control" required>
+                <input type="text" name="hora" placeholder="Ej: 14:30" class="form-control" required>
+                <input type="text" name="cancha" placeholder="Ej: Cancha 1" class="form-control">
+                <select name="categoria" class="form-control" required>
+                  <option value="3era">3era</option>
+                  <option value="4ta">4ta</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <input type="text" name="jugador1" placeholder="Jugador 1" class="form-control" required>
+                <input type="text" name="jugador2" placeholder="Jugador 2" class="form-control" required>
+              </div>
+              <button type="submit" class="btn">Programar Partido</button>
+            </form>
+          </div>
+
+        </section>
+      {% endif %}
+
     {% endif %}
 
-    <!-- Pestañas de Navegación del Torneo -->
-    <div class="mb-4">
-        <div class="nav nav-pills-custom" role="tablist">
-            <button class="nav-link active" id="c3-tab" data-bs-toggle="tab" data-bs-target="#c3" type="button">Zonas 3era</button>
-            <button class="nav-link" id="c4-tab" data-bs-toggle="tab" data-bs-target="#c4" type="button">Zonas 4ta</button>
-            <button class="nav-link" id="cuadro3-tab" data-bs-toggle="tab" data-bs-target="#cuadro3" type="button"><i class="bi bi-diagram-3-fill me-1"></i> Cuadro 3era</button>
-            <button class="nav-link" id="cuadro4-tab" data-bs-toggle="tab" data-bs-target="#cuadro4" type="button"><i class="bi bi-diagram-3-fill me-1"></i> Cuadro 4ta</button>
-        </div>
-    </div>
+  </main>
 
-    <!-- Contenido de las Pestañas -->
-    <div class="tab-content" id="catTabsContent">
-
-        <!-- Pestañas Zonas -->
-        {% for cat_key, cat_id in [('3era', 'c3'), ('4ta', 'c4')] %}
-        <div class="tab-pane fade {% if cat_key == '3era' %}show active{% endif %}" id="{{ cat_id }}" role="tabpanel">
-            {% if not categorias[cat_key] %}
-                <div class="text-center py-5"><p class="text-muted">No hay zonas configuradas en esta categoría.</p></div>
-            {% endif %}
-
-            {% for z in categorias[cat_key] %}
-            <div class="card card-custom mb-4 overflow-hidden">
-                <div class="card-header bg-white p-3 border-0 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold m-0 text-dark"><span class="badge bg-success rounded-pill me-2">{{ cat_key }}</span> {{ z.nombre }}</h5>
-                    {% if es_admin %}
-                    <form action="/eliminar_zona/{{ z.id }}" method="POST" onsubmit="return confirm('¿Eliminar zona?');">
-                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">Eliminar</button>
-                    </form>
-                    {% endif %}
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-tennis align-middle text-center mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="text-start ps-3">Jugador</th>
-                                    {% for j in z.jugadores %}<th>{{ loop.index }}</th>{% endfor %}
-                                    <th>PG</th><th>% Sets</th><th>% Games</th><th>Pos.</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for j_row in z.jugadores %}
-                                    {% set j_row_id = j_row.id %}
-                                    {% set st = z.stats[j_row_id] %}
-                                    {% set pos_orden = z.posiciones[j_row_id] %}
-                                    <tr class="{% if pos_orden == 1 %}clasifica-1{% elif pos_orden == 2 %}clasifica-2{% endif %}">
-                                        <td class="text-start ps-3 fw-semibold text-dark">
-                                            {{ loop.index }}. {{ j_row.nombre }}
-                                            {% if es_admin %}
-                                            <form action="/eliminar_jugador/{{ j_row_id }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar jugador?');">
-                                                <button type="submit" class="btn btn-link text-danger p-0 ms-1 text-decoration-none"><i class="bi bi-x-circle"></i></button>
-                                            </form>
-                                            {% endif %}
-                                        </td>
-                                        {% for j_col in z.jugadores %}
-                                            {% set j_col_id = j_col.id %}
-                                            {% if j_row_id == j_col_id %}
-                                                <td class="diagonal-cell"></td>
-                                            {% else %}
-                                                <td>
-                                                    {% if z.matriz[j_row_id] and z.matriz[j_row_id][j_col_id] %}
-                                                        {% for st_item in z.matriz[j_row_id][j_col_id].sets_list %}
-                                                            <span class="set-badge {% if st_item.ganado %}set-win{% else %}set-loss{% endif %}">{{ st_item.texto }}</span>
-                                                        {% endfor %}
-                                                    {% else %}<span class="text-muted fs-7">-</span>{% endif %}
-                                                </td>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <td class="fw-bold text-dark">{{ st.pg }}</td>
-                                        <td class="text-muted fs-7">{{ st.pct_sets }}%</td>
-                                        <td class="text-muted fs-7">{{ st.pct_games }}%</td>
-                                        <td><span class="rank-badge">{{ pos_orden }}</span></td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endfor %}
-
-        <!-- Pestañas Cuadros Eliminatorios -->
-        {% for cat_key, tab_id in [('3era', 'cuadro3'), ('4ta', 'cuadro4')] %}
-        <div class="tab-pane fade" id="{{ tab_id }}" role="tabpanel">
-            <div class="card card-custom p-3 p-md-4">
-                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-trophy text-warning me-2"></i> Cuadro Principal {{ cat_key }}</h5>
-
-                <div class="bracket-container">
-                    <!-- Cuartos de Final -->
-                    <div class="bracket-column">
-                        <h6 class="text-uppercase text-muted fw-bold fs-7 mb-3 text-center">Cuartos de Final</h6>
-                        {% for match in cuadros[cat_key]['cuartos'] %}
-                        <div class="match-card">
-                            {% if es_admin %}
-                            <form action="/actualizar_cuadro" method="POST">
-                                <input type="hidden" name="cuadro_id" value="{{ match.id }}">
-                                <input type="text" name="jugador1_nombre" value="{{ match.jugador1_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 1">
-                                <input type="text" name="jugador2_nombre" value="{{ match.jugador2_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 2">
-                                <div class="d-flex gap-1">
-                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado">
-                                    <button type="submit" class="btn btn-sm btn-tennis"><i class="bi bi-check-lg"></i></button>
-                                </div>
-                            </form>
-                            {% else %}
-                            <div class="match-player"><span>{{ match.jugador1_nombre or 'Por definir' }}</span></div>
-                            <div class="match-player border-top pt-1"><span>{{ match.jugador2_nombre or 'Por definir' }}</span></div>
-                            {% if match.resultado %}
-                            <div class="text-center mt-2"><span class="match-result">{{ match.resultado }}</span></div>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Semifinales -->
-                    <div class="bracket-column">
-                        <h6 class="text-uppercase text-muted fw-bold fs-7 mb-3 text-center">Semifinales</h6>
-                        {% for match in cuadros[cat_key]['semi'] %}
-                        <div class="match-card">
-                            {% if es_admin %}
-                            <form action="/actualizar_cuadro" method="POST">
-                                <input type="hidden" name="cuadro_id" value="{{ match.id }}">
-                                <input type="text" name="jugador1_nombre" value="{{ match.jugador1_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 1">
-                                <input type="text" name="jugador2_nombre" value="{{ match.jugador2_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 2">
-                                <div class="d-flex gap-1">
-                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado">
-                                    <button type="submit" class="btn btn-sm btn-tennis"><i class="bi bi-check-lg"></i></button>
-                                </div>
-                            </form>
-                            {% else %}
-                            <div class="match-player"><span>{{ match.jugador1_nombre or 'Por definir' }}</span></div>
-                            <div class="match-player border-top pt-1"><span>{{ match.jugador2_nombre or 'Por definir' }}</span></div>
-                            {% if match.resultado %}
-                            <div class="text-center mt-2"><span class="match-result">{{ match.resultado }}</span></div>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Final -->
-                    <div class="bracket-column">
-                        <h6 class="text-uppercase text-muted fw-bold fs-7 mb-3 text-center text-warning"><i class="bi bi-star-fill me-1"></i> Gran Final</h6>
-                        {% for match in cuadros[cat_key]['final'] %}
-                        <div class="match-card border-warning">
-                            {% if es_admin %}
-                            <form action="/actualizar_cuadro" method="POST">
-                                <input type="hidden" name="cuadro_id" value="{{ match.id }}">
-                                <input type="text" name="jugador1_nombre" value="{{ match.jugador1_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 1">
-                                <input type="text" name="jugador2_nombre" value="{{ match.jugador2_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 2">
-                                <div class="d-flex gap-1">
-                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado">
-                                    <button type="submit" class="btn btn-sm btn-tennis"><i class="bi bi-check-lg"></i></button>
-                                </div>
-                            </form>
-                            {% else %}
-                            <div class="match-player"><span>{{ match.jugador1_nombre or 'Por definir' }}</span></div>
-                            <div class="match-player border-top pt-1"><span>{{ match.jugador2_nombre or 'Por definir' }}</span></div>
-                            {% if match.resultado %}
-                            <div class="text-center mt-2"><span class="match-result fs-6">{{ match.resultado }}</span></div>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-
-    </div>
-</div>
-
-<!-- Modal Login Admin -->
-<div class="modal fade" id="loginModal" tabindex="-1">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title fw-bold">Acceso Organizador</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="/admin" method="POST">
-                <div class="modal-body py-3">
-                    <input type="password" name="password" class="form-control" placeholder="Contraseña de Admin" required>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="submit" class="btn btn-tennis w-100">Ingresar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    const categoriasData = {{ categorias | tojson }};
-    function filtrarJugadores() {
-        const zonaId = document.getElementById("zona_select").value;
-        const j1Select = document.getElementById("j1_select");
-        const j2Select = document.getElementById("j2_select");
-        if(!j1Select || !j2Select) return;
-        j1Select.innerHTML = ""; j2Select.innerHTML = "";
-
-        let zonaActual = null;
-        Object.values(categoriasData).forEach(zonas => {
-            let zFound = zonas.find(z => z.id == zonaId);
-            if(zFound) zonaActual = zFound;
-        });
-
-        if (zonaActual && zonaActual.jugadores.length > 0) {
-            zonaActual.jugadores.forEach(j => {
-                let opt1 = new Option(j.nombre, j.id);
-                let opt2 = new Option(j.nombre, j.id);
-                j1Select.add(opt1); j2Select.add(opt2);
-            });
-            if(j2Select.options.length > 1) j2Select.selectedIndex = 1;
-        }
-    }
-    document.addEventListener("DOMContentLoaded", filtrarJugadores);
-</script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
