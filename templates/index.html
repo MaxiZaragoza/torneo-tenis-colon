@@ -26,7 +26,17 @@
         .navbar-custom {
             background: linear-gradient(135deg, var(--tennis-dark) 0%, var(--tennis-green) 100%);
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 1rem 0;
+            padding: 0.75rem 0;
+        }
+
+        /* Título Responsivo */
+        .brand-text {
+            font-size: 1.1rem;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        @media (min-width: 768px) {
+            .brand-text { font-size: 1.5rem; }
         }
 
         .card-custom {
@@ -52,24 +62,26 @@
             box-shadow: 0 4px 12px rgba(30, 86, 49, 0.25);
         }
 
-        /* Pestañas de Navegación */
+        /* Pestañas Adaptables */
         .nav-pills-custom {
             background: #e2e8f0;
             padding: 6px;
             border-radius: 14px;
             display: flex;
             gap: 4px;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .nav-pills-custom .nav-link {
             border-radius: 10px;
             color: #64748b;
             font-weight: 700;
-            padding: 8px 16px;
-            flex: 1;
-            text-align: center;
+            padding: 8px 12px;
             white-space: nowrap;
+            flex: 1 0 auto;
+            text-align: center;
+            font-size: 0.9rem;
         }
 
         .nav-pills-custom .nav-link.active {
@@ -78,24 +90,28 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        /* Tabla de Resultados */
+        /* Tablas */
+        .table-tennis th, .table-tennis td {
+            white-space: nowrap;
+        }
+
         .table-tennis th {
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             color: #64748b;
             background-color: #f8fafc;
             border-bottom: 2px solid #edf2f7;
-            padding: 0.85rem;
+            padding: 0.75rem 0.5rem;
         }
 
         .diagonal-cell { background-color: #1e293b !important; }
 
         .set-badge {
             display: inline-block;
-            padding: 2px 7px;
+            padding: 2px 5px;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 700;
         }
 
@@ -103,9 +119,9 @@
         .set-loss { background-color: #fee2e2; color: #b91c1c; }
 
         .rank-badge {
-            width: 26px; height: 26px; border-radius: 50%;
+            width: 24px; height: 24px; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.8rem;
+            font-weight: 700; font-size: 0.75rem;
         }
 
         .clasifica-1 { background-color: #f0fdf4 !important; }
@@ -113,17 +129,17 @@
         .clasifica-2 { background-color: #f8fafc !important; }
         .clasifica-2 .rank-badge { background-color: #94a3b8; color: white; }
 
-        /* Estilos del Cuadro Eliminatorio (Brackets) */
+        /* Brackets Eliminatorios */
         .bracket-container {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             overflow-x: auto;
             padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
         }
 
         .bracket-column {
-            flex: 1;
-            min-width: 260px;
+            flex: 0 0 250px;
             display: flex;
             flex-direction: column;
             justify-content: space-around;
@@ -133,10 +149,9 @@
             background: #ffffff;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
-            padding: 12px;
+            padding: 10px;
             margin-bottom: 15px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            position: relative;
         }
 
         .match-player {
@@ -144,15 +159,15 @@
             justify-content: space-between;
             align-items: center;
             padding: 4px 0;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
         }
 
         .match-result {
             background: #f1f5f9;
             border-radius: 6px;
-            padding: 2px 8px;
-            font-size: 0.8rem;
+            padding: 2px 6px;
+            font-size: 0.75rem;
             font-weight: 700;
             color: var(--tennis-green);
         }
@@ -160,34 +175,34 @@
 </head>
 <body>
 
-<nav class="navbar navbar-custom text-white mb-4">
-    <div class="container d-flex justify-content-between align-items-center">
-        <!-- TÍTULO EN DORADO CON text-warning -->
-        <span class="navbar-brand fw-bold fs-4 m-0 d-flex align-items-center gap-2 text-warning">
-            <i class="bi bi-trophy-fill text-warning"></i> Torneo de Tenis de Colón - Las Cabañas Tenis Ranch
-        </span>
+<nav class="navbar navbar-custom text-white mb-3">
+    <div class="container d-flex justify-content-between align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 brand-text fw-bold text-warning">
+            <i class="bi bi-trophy-fill text-warning flex-shrink-0"></i>
+            <span>Torneo de Tenis de Colón <span class="d-none d-sm-inline">- Las Cabañas Tenis Ranch</span></span>
+        </div>
         {% if es_admin %}
-            <a href="/logout" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right me-1"></i> Salir Admin</a>
+            <a href="/logout" class="btn btn-outline-light btn-sm rounded-pill px-3 flex-shrink-0"><i class="bi bi-box-arrow-right me-1"></i> Salir</a>
         {% else %}
-            <button class="btn btn-light btn-sm fw-semibold rounded-pill px-3 text-success shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                <i class="bi bi-lock-fill me-1"></i> Panel Admin
+            <button class="btn btn-light btn-sm fw-semibold rounded-pill px-3 text-success shadow-sm flex-shrink-0" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <i class="bi bi-lock-fill me-1"></i> Admin
             </button>
         {% endif %}
     </div>
 </nav>
 
-<div class="container mb-5">
+<div class="container mb-5 px-2 px-sm-3">
 
     {% if es_admin %}
     <div class="d-flex align-items-center justify-content-between bg-white p-3 rounded-4 shadow-sm mb-4 border-start border-4 border-success">
         <div class="d-flex align-items-center gap-2">
             <i class="bi bi-shield-check text-success fs-4"></i>
-            <span class="fw-bold text-dark">Modo Edición Habilitado</span>
+            <span class="fw-bold text-dark fs-7 fs-sm-6">Modo Edición Habilitado</span>
         </div>
-        <span class="badge bg-success-subtle text-success fw-semibold">Administrador</span>
+        <span class="badge bg-success-subtle text-success fw-semibold">Admin</span>
     </div>
 
-    <!-- Panel Carga de Datos (Zonas, Jugadores, Partidos) -->
+    <!-- Panel Carga de Datos -->
     <div class="row g-3 mb-4">
         <div class="col-lg-4 col-md-6">
             <div class="card card-custom h-100"><div class="card-body">
@@ -256,7 +271,7 @@
     <!-- Contenido de las Pestañas -->
     <div class="tab-content" id="catTabsContent">
 
-        <!-- Pestañas Zonas (3era y 4ta) -->
+        <!-- Pestañas Zonas -->
         {% for cat_key, cat_id in [('3era', 'c3'), ('4ta', 'c4')] %}
         <div class="tab-pane fade {% if cat_key == '3era' %}show active{% endif %}" id="{{ cat_id }}" role="tabpanel">
             {% if not categorias[cat_key] %}
@@ -269,7 +284,7 @@
                     <h5 class="fw-bold m-0 text-dark"><span class="badge bg-success rounded-pill me-2">{{ cat_key }}</span> {{ z.nombre }}</h5>
                     {% if es_admin %}
                     <form action="/eliminar_zona/{{ z.id }}" method="POST" onsubmit="return confirm('¿Eliminar zona?');">
-                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">Eliminar Zona</button>
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">Eliminar</button>
                     </form>
                     {% endif %}
                 </div>
@@ -278,7 +293,7 @@
                         <table class="table table-tennis align-middle text-center mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-start ps-4">Jugador</th>
+                                    <th class="text-start ps-3">Jugador</th>
                                     {% for j in z.jugadores %}<th>{{ loop.index }}</th>{% endfor %}
                                     <th>PG</th><th>% Sets</th><th>% Games</th><th>Pos.</th>
                                 </tr>
@@ -289,7 +304,7 @@
                                     {% set st = z.stats[j_row_id] %}
                                     {% set pos_orden = z.posiciones[j_row_id] %}
                                     <tr class="{% if pos_orden == 1 %}clasifica-1{% elif pos_orden == 2 %}clasifica-2{% endif %}">
-                                        <td class="text-start ps-4 fw-semibold text-dark">
+                                        <td class="text-start ps-3 fw-semibold text-dark">
                                             {{ loop.index }}. {{ j_row.nombre }}
                                             {% if es_admin %}
                                             <form action="/eliminar_jugador/{{ j_row_id }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar jugador?');">
@@ -326,14 +341,13 @@
         </div>
         {% endfor %}
 
-        <!-- Pestañas Cuadros Eliminatorios (3era y 4ta) -->
+        <!-- Pestañas Cuadros Eliminatorios -->
         {% for cat_key, tab_id in [('3era', 'cuadro3'), ('4ta', 'cuadro4')] %}
         <div class="tab-pane fade" id="{{ tab_id }}" role="tabpanel">
-            <div class="card card-custom p-4">
-                <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-trophy text-warning me-2"></i> Cuadro Principal {{ cat_key }}</h5>
+            <div class="card card-custom p-3 p-md-4">
+                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-trophy text-warning me-2"></i> Cuadro Principal {{ cat_key }}</h5>
 
                 <div class="bracket-container">
-
                     <!-- Cuartos de Final -->
                     <div class="bracket-column">
                         <h6 class="text-uppercase text-muted fw-bold fs-7 mb-3 text-center">Cuartos de Final</h6>
@@ -345,7 +359,7 @@
                                 <input type="text" name="jugador1_nombre" value="{{ match.jugador1_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 1">
                                 <input type="text" name="jugador2_nombre" value="{{ match.jugador2_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 2">
                                 <div class="d-flex gap-1">
-                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado (Ej: 6-4 6-2)">
+                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado">
                                     <button type="submit" class="btn btn-sm btn-tennis"><i class="bi bi-check-lg"></i></button>
                                 </div>
                             </form>
@@ -411,7 +425,6 @@
                         </div>
                         {% endfor %}
                     </div>
-
                 </div>
             </div>
         </div>
