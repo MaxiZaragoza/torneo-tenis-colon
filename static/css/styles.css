@@ -209,6 +209,39 @@ body {
 .pos-3 { background-color: #f59e0b; }
 
 /* ==========================================
+   ESTADOS DE HORARIOS (COLORES DESTACADOS)
+   ========================================== */
+.estado-encurso {
+  background-color: #d1fae5 !important; /* Verde clarito */
+}
+
+.estado-finalizado {
+  background-color: #fee2e2 !important; /* Rojo clarito */
+}
+
+.badge-estado {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.state-en-curso {
+  background-color: #10b981;
+  color: white;
+}
+
+.state-finalizado {
+  background-color: #ef4444;
+  color: white;
+}
+
+.state-programado {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+/* ==========================================
    CUADROS DE ELIMINACIÓN DIRECTA (BRACKET)
    ========================================== */
 .bracket-wrapper {

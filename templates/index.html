@@ -225,28 +225,41 @@
                     <th>Cancha</th>
                     <th>Categoría</th>
                     <th>Encuentro</th>
+                    <th>Estado</th>
                     {% if es_admin %}<th>Acciones</th>{% endif %}
                   </tr>
                 </thead>
                 <tbody>
                   {% for h in horarios %}
-                    <tr>
+                    <tr class="{% if h.estado == 'En Curso' %}estado-encurso{% elif h.estado == 'Finalizado' %}estado-finalizado{% endif %}">
                       <td>{{ h.dia }}</td>
                       <td><strong>{{ h.hora }} hs</strong></td>
                       <td>{{ h.cancha }}</td>
                       <td>{{ h.categoria }}</td>
                       <td><strong>{{ h.jugador1 }}</strong> vs <strong>{{ h.jugador2 }}</strong></td>
+                      <td>
+                        <span class="badge-estado state-{{ h.estado|lower|replace(' ', '-') }}">
+                          {{ h.estado if h.estado else 'Programado' }}
+                        </span>
+                      </td>
                       {% if es_admin %}
-                        <td>
+                        <td style="display: flex; gap: 4px; justify-content: center;">
+                          <form action="{{ url_for('cambiar_estado_horario', horario_id=h.id) }}" method="POST">
+                            <select name="estado" onchange="this.form.submit()" style="font-size: 0.75rem; padding: 2px;">
+                              <option value="Programado" {% if h.estado == 'Programado' %}selected{% endif %}>Programado</option>
+                              <option value="En Curso" {% if h.estado == 'En Curso' %}selected{% endif %}>En Curso (Verde)</option>
+                              <option value="Finalizado" {% if h.estado == 'Finalizado' %}selected{% endif %}>Finalizado (Rojo)</option>
+                            </select>
+                          </form>
                           <form action="{{ url_for('eliminar_horario', horario_id=h.id) }}" method="POST">
-                            <button type="submit" class="btn btn-danger" style="padding: 2px 5px; font-size: 0.7rem;">Borrar</button>
+                            <button type="submit" class="btn btn-danger" style="padding: 2px 5px; font-size: 0.7rem;">X</button>
                           </form>
                         </td>
                       {% endif %}
                     </tr>
                   {% else %}
                     <tr>
-                      <td colspan="6">No hay partidos programados.</td>
+                      <td colspan="7">No hay partidos programados.</td>
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -263,7 +276,7 @@
         <section class="admin-panel">
           <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);"><i class="fa-solid fa-user-gear"></i> Panel de Administración</h2>
 
-          <!-- Formularo 1: Crear Zona -->
+          <!-- Formulario 1: Crear Zona -->
           <div class="admin-card">
             <h4>1. Crear Nueva Zona</h4>
             <form action="{{ url_for('crear_zona') }}" method="POST" class="form-group">
@@ -344,7 +357,7 @@
             <h4>5. Agregar Partido al Cronograma de Horarios</h4>
             <form action="{{ url_for('crear_horario') }}" method="POST">
               <div class="form-group">
-                <input type="text" name="dia" placeholder="Ej: Sábado 12" class="form-control" required>
+                <input type="text" name="dia" placeholder="Ej: Viernes o Sábado 12" class="form-control" required>
                 <input type="text" name="hora" placeholder="Ej: 14:30" class="form-control" required>
                 <input type="text" name="cancha" placeholder="Ej: Cancha 1" class="form-control">
                 <select name="categoria" class="form-control" required>
@@ -355,6 +368,11 @@
               <div class="form-group">
                 <input type="text" name="jugador1" placeholder="Jugador 1" class="form-control" required>
                 <input type="text" name="jugador2" placeholder="Jugador 2" class="form-control" required>
+                <select name="estado" class="form-control">
+                  <option value="Programado">Programado</option>
+                  <option value="En Curso">En Curso</option>
+                  <option value="Finalizado">Finalizado</option>
+                </select>
               </div>
               <button type="submit" class="btn">Programar Partido</button>
             </form>

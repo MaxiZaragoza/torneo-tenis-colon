@@ -93,7 +93,6 @@ def init_db():
             )
         """)
 
-        # NUEVA TABLA: Horarios de partidos
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS horarios (
                 id {pk_type},
@@ -141,6 +140,18 @@ def parse_sets_para_vista(res_txt):
             except ValueError:
                 sets_data.append({"texto": t, "ganado": False})
     return sets_data
+
+
+def obtener_prioridad_dia(dia_str):
+    d = dia_str.lower()
+    if "lunes" in d: return 1
+    if "martes" in d: return 2
+    if "miercoles" in d or "miércoles" in d: return 3
+    if "jueves" in d: return 4
+    if "viernes" in d: return 5
+    if "sabado" in d or "sábado" in d: return 6
+    if "domingo" in d: return 7
+    return 8
 
 
 def obtener_datos_torneo():
@@ -226,8 +237,11 @@ def obtener_datos_torneo():
         if c["categoria"] in cuadros_data and c["instancia"] in cuadros_data[c["categoria"]]:
             cuadros_data[c["categoria"]][c["instancia"]].append(c)
 
-    cursor.execute("SELECT * FROM horarios ORDER BY dia, hora")
+    cursor.execute("SELECT * FROM horarios")
     horarios_data = [dict(h) for h in cursor.fetchall()]
+
+    # Ordenamiento cronologico por día de semana y hora
+    horarios_data.sort(key=lambda h: (obtener_prioridad_dia(h.get("dia", "")), h.get("hora", "")))
 
     return categorias_data, cuadros_data, horarios_data
 
@@ -371,6 +385,7 @@ def crear_horario():
     categoria = request.form.get("categoria")
     jugador1 = request.form.get("jugador1")
     jugador2 = request.form.get("jugador2")
+    estado = request.form.get("estado", "Programado")
 
     if dia and hora and categoria and jugador1 and jugador2:
         db = get_db()
@@ -378,9 +393,23 @@ def crear_horario():
         is_pg = getattr(g, "db_type", "sqlite") == "postgres"
         ph = "%s" if is_pg else "?"
         cursor.execute(f"""
-            INSERT INTO horarios (dia, hora, cancha, categoria, jugador1, jugador2)
-            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
-        """, (dia, hora, cancha, categoria, jugador1, jugador2))
+            INSERT INTO horarios (dia, hora, cancha, categoria, jugador1, jugador2, estado)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+        """, (dia, hora, cancha, categoria, jugador1, jugador2, estado))
+        db.commit()
+    return redirect(url_for("admin"))
+
+
+@app.route("/cambiar_estado_horario/<int:horario_id>", methods=["POST"])
+def cambiar_estado_horario(horario_id):
+    if not session.get("admin_logged_in"): return redirect(url_for("index"))
+    nuevo_estado = request.form.get("estado")
+    if nuevo_estado:
+        db = get_db()
+        cursor = get_cursor(db)
+        is_pg = getattr(g, "db_type", "sqlite") == "postgres"
+        ph = "%s" if is_pg else "?"
+        cursor.execute(f"UPDATE horarios SET estado = {ph} WHERE id = {ph}", (nuevo_estado, horario_id))
         db.commit()
     return redirect(url_for("admin"))
 
