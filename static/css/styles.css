@@ -121,16 +121,17 @@ body {
 }
 
 /* ==========================================
-   TARJETAS Y TABLAS DE ZONAS
+   TARJETAS Y TABLAS DE ZONAS (UNA DEBAJO DE OTRA)
    ========================================== */
 .zones-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
 .zone-card {
+  width: 100%;
   background: var(--card-bg);
   border-radius: var(--radius);
   border: 1px solid var(--border-color);

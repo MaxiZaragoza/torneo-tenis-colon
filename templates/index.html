@@ -110,7 +110,7 @@
                       <tbody>
                         {% for j1 in zona.jugadores %}
                           <tr>
-                            <td class="player-name">ID:{{ j1.id }} - {{ j1.nombre }}</td>
+                            <td class="player-name">{{ j1.nombre }}</td>
                             {% for j2 in zona.jugadores %}
                               {% if j1.id == j2.id %}
                                 <td class="cell-vs">-</td>
