@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneo de Tenis de Colón - Las Cabañas tenis ranch</title>
+    <!-- Bootstrap 5 & Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --tennis-dark: #0f3822;
+            --tennis-green: #1e5631;
+            --bg-main: #f3f5f8;
+            --card-radius: 16px;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: #2d3748;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--tennis-dark) 0%, var(--tennis-green) 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 1rem 0;
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            background: #ffffff;
+        }
+
+        .btn-tennis {
+            background-color: var(--tennis-green);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-tennis:hover {
+            background-color: var(--tennis-dark);
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 86, 49, 0.25);
+        }
+
+        /* Pestañas de Navegación */
+        .nav-pills-custom {
+            background: #e2e8f0;
+            padding: 6px;
+            border-radius: 14px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .nav-pills-custom .nav-link {
+            border-radius: 10px;
+            color: #64748b;
+            font-weight: 700;
+            padding: 8px 16px;
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .nav-pills-custom .nav-link.active {
+            background-color: #ffffff;
+            color: var(--tennis-dark);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Tabla de Resultados */
+        .table-tennis th {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #64748b;
+            background-color: #f8fafc;
+            border-bottom: 2px solid #edf2f7;
+            padding: 0.85rem;
+        }
+
+        .diagonal-cell { background-color: #1e293b !important; }
+
+        .set-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .set-win { background-color: #dcfce7; color: #15803d; }
+        .set-loss { background-color: #fee2e2; color: #b91c1c; }
+
+        .rank-badge {
+            width: 26px; height: 26px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.8rem;
+        }
+
+        .clasifica-1 { background-color: #f0fdf4 !important; }
+        .clasifica-1 .rank-badge { background-color: #22c55e; color: white; }
+        .clasifica-2 { background-color: #f8fafc !important; }
+        .clasifica-2 .rank-badge { background-color: #94a3b8; color: white; }
+
+        /* Estilos del Cuadro Eliminatorio (Brackets) */
+        .bracket-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .bracket-column {
+            flex: 1;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .match-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        .match-player {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .match-result {
+            background: #f1f5f9;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--tennis-green);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-custom text-white mb-4">
+    <div class="container d-flex justify-content-between align-items-center">
+        <!-- TÍTULO EN DORADO CON text-warning -->
+        <span class="navbar-brand fw-bold fs-4 m-0 d-flex align-items-center gap-2 text-warning">
+            <i class="bi bi-trophy-fill text-warning"></i> Torneo de Tenis de Colón - Las Cabañas Tenis Ranch
+        </span>
+        {% if es_admin %}
+            <a href="/logout" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right me-1"></i> Salir Admin</a>
+        {% else %}
+            <button class="btn btn-light btn-sm fw-semibold rounded-pill px-3 text-success shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <i class="bi bi-lock-fill me-1"></i> Panel Admin
+            </button>
+        {% endif %}
+    </div>
+</nav>
+
+<div class="container mb-5">
+
+    {% if es_admin %}
+    <div class="d-flex align-items-center justify-content-between bg-white p-3 rounded-4 shadow-sm mb-4 border-start border-4 border-success">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-success fs-4"></i>
+            <span class="fw-bold text-dark">Modo Edición Habilitado</span>
+        </div>
+        <span class="badge bg-success-subtle text-success fw-semibold">Administrador</span>
+    </div>
+
+    <!-- Panel Carga de Datos (Zonas, Jugadores, Partidos) -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="card card-custom h-100"><div class="card-body">
+                <h6 class="fw-bold text-uppercase text-muted fs-7 mb-2"><i class="bi bi-grid-plus me-1"></i> 1. Nueva Zona</h6>
+                <form action="/crear_zona" method="POST">
+                    <input type="text" name="nombre_zona" class="form-control mb-2" placeholder="Nombre (Ej: Zona A)" required>
+                    <select name="categoria_zona" class="form-select mb-2" required>
+                        <option value="3era">Categoría 3era</option>
+                        <option value="4ta">Categoría 4ta</option>
+                    </select>
+                    <button type="submit" class="btn btn-tennis w-100">Crear Zona</button>
+                </form>
+            </div></div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card card-custom h-100"><div class="card-body">
+                <h6 class="fw-bold text-uppercase text-muted fs-7 mb-2"><i class="bi bi-person-plus me-1"></i> 2. Nuevo Jugador</h6>
+                <form action="/crear_jugador" method="POST">
+                    <input type="text" name="nombre_jugador" class="form-control mb-2" placeholder="Nombre y Apellido" required>
+                    <select name="zona_id" class="form-select mb-2" required>
+                        {% for cat, zonas in categorias.items() %}
+                            {% for z in zonas %}<option value="{{ z.id }}">{{ cat }} - {{ z.nombre }}</option>{% endfor %}
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-tennis w-100">Agregar Jugador</button>
+                </form>
+            </div></div>
+        </div>
+
+        <div class="col-lg-4 col-md-12">
+            <div class="card card-custom h-100"><div class="card-body">
+                <h6 class="fw-bold text-uppercase text-muted fs-7 mb-2"><i class="bi bi-controller me-1"></i> 3. Partido de Zona</h6>
+                <form action="/cargar_partido" method="POST">
+                    <select name="zona_id" id="zona_select" class="form-select mb-2" required onchange="filtrarJugadores()">
+                        {% for cat, zonas in categorias.items() %}
+                            {% for z in zonas %}<option value="{{ z.id }}">{{ cat }} - {{ z.nombre }}</option>{% endfor %}
+                        {% endfor %}
+                    </select>
+                    <div class="row g-1 mb-2">
+                        <div class="col-6"><select name="jugador1_id" id="j1_select" class="form-select" required></select></div>
+                        <div class="col-6"><select name="jugador2_id" id="j2_select" class="form-select" required></select></div>
+                    </div>
+                    <div class="row g-1 mb-2 text-center">
+                        <div class="col-4"><span class="fs-7 text-muted">Set 1</span><div class="d-flex gap-1"><input type="number" name="set1_j1" class="form-control px-1 text-center"><input type="number" name="set1_j2" class="form-control px-1 text-center"></div></div>
+                        <div class="col-4"><span class="fs-7 text-muted">Set 2</span><div class="d-flex gap-1"><input type="number" name="set2_j1" class="form-control px-1 text-center"><input type="number" name="set2_j2" class="form-control px-1 text-center"></div></div>
+                        <div class="col-4"><span class="fs-7 text-muted">Set 3</span><div class="d-flex gap-1"><input type="number" name="set3_j1" class="form-control px-1 text-center"><input type="number" name="set3_j2" class="form-control px-1 text-center"></div></div>
+                    </div>
+                    <button type="submit" class="btn btn-tennis w-100">Guardar Marcador</button>
+                </form>
+            </div></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pestañas de Navegación del Torneo -->
+    <div class="mb-4">
+        <div class="nav nav-pills-custom" role="tablist">
+            <button class="nav-link active" id="c3-tab" data-bs-toggle="tab" data-bs-target="#c3" type="button">Zonas 3era</button>
+            <button class="nav-link" id="c4-tab" data-bs-toggle="tab" data-bs-target="#c4" type="button">Zonas 4ta</button>
+            <button class="nav-link" id="cuadro3-tab" data-bs-toggle="tab" data-bs-target="#cuadro3" type="button"><i class="bi bi-diagram-3-fill me-1"></i> Cuadro 3era</button>
+            <button class="nav-link" id="cuadro4-tab" data-bs-toggle="tab" data-bs-target="#cuadro4" type="button"><i class="bi bi-diagram-3-fill me-1"></i> Cuadro 4ta</button>
+        </div>
+    </div>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="catTabsContent">
+
+        <!-- Pestañas Zonas (3era y 4ta) -->
+        {% for cat_key, cat_id in [('3era', 'c3'), ('4ta', 'c4')] %}
+        <div class="tab-pane fade {% if cat_key == '3era' %}show active{% endif %}" id="{{ cat_id }}" role="tabpanel">
+            {% if not categorias[cat_key] %}
+                <div class="text-center py-5"><p class="text-muted">No hay zonas configuradas en esta categoría.</p></div>
+            {% endif %}
+
+            {% for z in categorias[cat_key] %}
+            <div class="card card-custom mb-4 overflow-hidden">
+                <div class="card-header bg-white p-3 border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold m-0 text-dark"><span class="badge bg-success rounded-pill me-2">{{ cat_key }}</span> {{ z.nombre }}</h5>
+                    {% if es_admin %}
+                    <form action="/eliminar_zona/{{ z.id }}" method="POST" onsubmit="return confirm('¿Eliminar zona?');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">Eliminar Zona</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-tennis align-middle text-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-start ps-4">Jugador</th>
+                                    {% for j in z.jugadores %}<th>{{ loop.index }}</th>{% endfor %}
+                                    <th>PG</th><th>% Sets</th><th>% Games</th><th>Pos.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for j_row in z.jugadores %}
+                                    {% set j_row_id = j_row.id %}
+                                    {% set st = z.stats[j_row_id] %}
+                                    {% set pos_orden = z.posiciones[j_row_id] %}
+                                    <tr class="{% if pos_orden == 1 %}clasifica-1{% elif pos_orden == 2 %}clasifica-2{% endif %}">
+                                        <td class="text-start ps-4 fw-semibold text-dark">
+                                            {{ loop.index }}. {{ j_row.nombre }}
+                                            {% if es_admin %}
+                                            <form action="/eliminar_jugador/{{ j_row_id }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar jugador?');">
+                                                <button type="submit" class="btn btn-link text-danger p-0 ms-1 text-decoration-none"><i class="bi bi-x-circle"></i></button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
+                                        {% for j_col in z.jugadores %}
+                                            {% set j_col_id = j_col.id %}
+                                            {% if j_row_id == j_col_id %}
+                                                <td class="diagonal-cell"></td>
+                                            {% else %}
+                                                <td>
+                                                    {% if z.matriz[j_row_id] and z.matriz[j_row_id][j_col_id] %}
+                                                        {% for st_item in z.matriz[j_row_id][j_col_id].sets_list %}
+                                                            <span class="set-badge {% if st_item.ganado %}set-win{% else %}set-loss{% endif %}">{{ st_item.texto }}</span>
+                                                        {% endfor %}
+                                                    {% else %}<span class="text-muted fs-7">-</span>{% endif %}
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <td class="fw-bold text-dark">{{ st.pg }}</td>
+                                        <td class="text-muted fs-7">{{ st.pct_sets }}%</td>
+                                        <td class="text-muted fs-7">{{ st.pct_games }}%</td>
+                                        <td><span class="rank-badge">{{ pos_orden }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <!-- Pestañas Cuadros Eliminatorios (3era y 4ta) -->
+        {% for cat_key, tab_id in [('3era', 'cuadro3'), ('4ta', 'cuadro4')] %}
+        <div class="tab-pane fade" id="{{ tab_id }}" role="tabpanel">
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-trophy text-warning me-2"></i> Cuadro Principal {{ cat_key }}</h5>
+
+                <div class="bracket-container">
+
+                    <!-- Cuartos de Final -->
+                    <div class="bracket-column">
+                        <h6 class="text-uppercase text-muted fw-bold fs-7 mb-3 text-center">Cuartos de Final</h6>
+                        {% for match in cuadros[cat_key]['cuartos'] %}
+                        <div class="match-card">
+                            {% if es_admin %}
+                            <form action="/actualizar_cuadro" method="POST">
+                                <input type="hidden" name="cuadro_id" value="{{ match.id }}">
+                                <input type="text" name="jugador1_nombre" value="{{ match.jugador1_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 1">
+                                <input type="text" name="jugador2_nombre" value="{{ match.jugador2_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 2">
+                                <div class="d-flex gap-1">
+                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado (Ej: 6-4 6-2)">
+                                    <button type="submit" class="btn btn-sm btn-tennis"><i class="bi bi-check-lg"></i></button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <div class="match-player"><span>{{ match.jugador1_nombre or 'Por definir' }}</span></div>
+                            <div class="match-player border-top pt-1"><span>{{ match.jugador2_nombre or 'Por definir' }}</span></div>
+                            {% if match.resultado %}
+                            <div class="text-center mt-2"><span class="match-result">{{ match.resultado }}</span></div>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Semifinales -->
+                    <div class="bracket-column">
+                        <h6 class="text-uppercase text-muted fw-bold fs-7 mb-3 text-center">Semifinales</h6>
+                        {% for match in cuadros[cat_key]['semi'] %}
+                        <div class="match-card">
+                            {% if es_admin %}
+                            <form action="/actualizar_cuadro" method="POST">
+                                <input type="hidden" name="cuadro_id" value="{{ match.id }}">
+                                <input type="text" name="jugador1_nombre" value="{{ match.jugador1_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 1">
+                                <input type="text" name="jugador2_nombre" value="{{ match.jugador2_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 2">
+                                <div class="d-flex gap-1">
+                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado">
+                                    <button type="submit" class="btn btn-sm btn-tennis"><i class="bi bi-check-lg"></i></button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <div class="match-player"><span>{{ match.jugador1_nombre or 'Por definir' }}</span></div>
+                            <div class="match-player border-top pt-1"><span>{{ match.jugador2_nombre or 'Por definir' }}</span></div>
+                            {% if match.resultado %}
+                            <div class="text-center mt-2"><span class="match-result">{{ match.resultado }}</span></div>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Final -->
+                    <div class="bracket-column">
+                        <h6 class="text-uppercase text-muted fw-bold fs-7 mb-3 text-center text-warning"><i class="bi bi-star-fill me-1"></i> Gran Final</h6>
+                        {% for match in cuadros[cat_key]['final'] %}
+                        <div class="match-card border-warning">
+                            {% if es_admin %}
+                            <form action="/actualizar_cuadro" method="POST">
+                                <input type="hidden" name="cuadro_id" value="{{ match.id }}">
+                                <input type="text" name="jugador1_nombre" value="{{ match.jugador1_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 1">
+                                <input type="text" name="jugador2_nombre" value="{{ match.jugador2_nombre }}" class="form-control form-control-sm mb-1" placeholder="Jugador 2">
+                                <div class="d-flex gap-1">
+                                    <input type="text" name="resultado" value="{{ match.resultado }}" class="form-control form-control-sm" placeholder="Resultado">
+                                    <button type="submit" class="btn btn-sm btn-tennis"><i class="bi bi-check-lg"></i></button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <div class="match-player"><span>{{ match.jugador1_nombre or 'Por definir' }}</span></div>
+                            <div class="match-player border-top pt-1"><span>{{ match.jugador2_nombre or 'Por definir' }}</span></div>
+                            {% if match.resultado %}
+                            <div class="text-center mt-2"><span class="match-result fs-6">{{ match.resultado }}</span></div>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+
+<!-- Modal Login Admin -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">Acceso Organizador</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin" method="POST">
+                <div class="modal-body py-3">
+                    <input type="password" name="password" class="form-control" placeholder="Contraseña de Admin" required>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="submit" class="btn btn-tennis w-100">Ingresar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const categoriasData = {{ categorias | tojson }};
+    function filtrarJugadores() {
+        const zonaId = document.getElementById("zona_select").value;
+        const j1Select = document.getElementById("j1_select");
+        const j2Select = document.getElementById("j2_select");
+        if(!j1Select || !j2Select) return;
+        j1Select.innerHTML = ""; j2Select.innerHTML = "";
+
+        let zonaActual = null;
+        Object.values(categoriasData).forEach(zonas => {
+            let zFound = zonas.find(z => z.id == zonaId);
+            if(zFound) zonaActual = zFound;
+        });
+
+        if (zonaActual && zonaActual.jugadores.length > 0) {
+            zonaActual.jugadores.forEach(j => {
+                let opt1 = new Option(j.nombre, j.id);
+                let opt2 = new Option(j.nombre, j.id);
+                j1Select.add(opt1); j2Select.add(opt2);
+            });
+            if(j2Select.options.length > 1) j2Select.selectedIndex = 1;
+        }
+    }
+    document.addEventListener("DOMContentLoaded", filtrarJugadores);
+</script>
+</body>
+</html>
